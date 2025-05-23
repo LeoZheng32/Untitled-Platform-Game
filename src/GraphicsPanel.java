@@ -10,7 +10,7 @@ import java.util.ArrayList;
 public class GraphicsPanel extends JPanel implements ActionListener, KeyListener, MouseListener {
     private BufferedImage background;
     private Timer timer;
-
+    private Player user;
     public GraphicsPanel() {
         try {
             background = ImageIO.read(new File("src/background.jpeg"));
@@ -20,12 +20,15 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
         setFocusable(true);
         requestFocusInWindow();
         System.out.println(background);
+
+        user = new Player();
     }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(background, 0, 0, null);
+        g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), null);
     }
 
     @Override

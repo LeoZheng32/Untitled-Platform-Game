@@ -4,7 +4,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 
-
 public class Player {
     private final int MOVE_AMT = 3;
     private BufferedImage right;
@@ -14,30 +13,19 @@ public class Player {
     private int yCoord;
     private int marioScore;
     private int luigiScore;
-    public Player(String name) {
+    public Player() {
         facingRight = true;
-        if (name.equals("Mario")) {
-            xCoord = 50; // starting position is (50, 435), right on top of ground
-            yCoord = 435;
-            marioScore = 0;
-            try {
-                left = ImageIO.read(new File("src\\marioleft.png"));
-                right = ImageIO.read(new File("src\\marioright.png"));
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
-        } else if (name.equals("Luigi")) {
-            xCoord = 200; // starting position is (50, 435), right on top of ground
-            yCoord = 435;
-            luigiScore = 0;
-            try {
-                left = ImageIO.read(new File("src\\luigileft.png"));
-                right = ImageIO.read(new File("src\\luigiright.png"));
-            } catch (IOException e) {
-                System.out.println(e.getMessage());
-            }
+        xCoord = 50; // starting position is (50, 435), right on top of ground
+        yCoord = 200;
+        marioScore = 0;
+        try {
+            left = ImageIO.read(new File("src/run000.png"));
+            right = ImageIO.read(new File("src/run000.png"));
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
         }
     }
+
     public int getxCoord() {
         return xCoord;
     }

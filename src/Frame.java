@@ -6,8 +6,9 @@ public class Frame {
     public Frame() {
         frame = new JFrame("Untitled Game");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(900, 600);
+        frame.setSize(600, 400);
         frame.setLocationRelativeTo(null);
+        frame.setResizable(false);
 
         GraphicsPanel displayPanel = new GraphicsPanel();
 
