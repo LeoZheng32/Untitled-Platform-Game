@@ -8,32 +8,76 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class GraphicsPanel extends JPanel implements ActionListener, KeyListener, MouseListener {
+    private static boolean canMove;
     private BufferedImage background;
+    private boolean[] pressedKeys;
     private Timer timer;
     private Player user;
+
     public GraphicsPanel() {
+        canMove = true;
+        pressedKeys = new boolean[128];
+        timer = new Timer(2, this);
+        timer.start();
         try {
-            background = ImageIO.read(new File("src/background.jpeg"));
+            background = ImageIO.read(new File("src/Resources/background.jpeg"));
         } catch (IOException e) {
             System.out.println(e.getMessage());
         }
+        user = new Player();
+        addKeyListener(this);
+        addMouseListener(this);
+        setFocusable(true);
         setFocusable(true);
         requestFocusInWindow();
-        System.out.println(background);
 
-        user = new Player();
     }
 
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(background, 0, 0, null);
-        g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), null);
+        if (user.getCurrentAnimation().animationType().equals("dead")) {
+            // 70 is the height of the character
+            g.drawImage(user.getPlayerImage(), user.getxCoord(), 275 - user.getHeight() + 70, user.getWidth(), user.getHeight(), null);
+        } else {
+            g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
+
+        }
+
+        if (canMove) {
+            // player moves left (A)
+            if (pressedKeys[65]) {
+                user.faceLeft();
+                user.moveLeft();
+            }
+
+            // player moves right (D)
+            if (pressedKeys[68]) {
+                user.updateCurrentAnimation("dead");
+                user.faceRight();
+                user.moveRight();
+            }
+
+            // player moves up (W)
+            if (pressedKeys[87]) {
+                user.moveUp();
+            }
+
+            // player moves down (S)
+            if (pressedKeys[83]) {
+                user.moveDown();
+            }
+        }
+    }
+
+    public static void setCanMove(boolean ableToMove) {
+        canMove = ableToMove;
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-
+        repaint();
     }
 
     @Override
@@ -43,11 +87,17 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
     @Override
     public void keyPressed(KeyEvent e) {
-
+        int key = e.getKeyCode();
+        pressedKeys[key] = true;
+        if (canMove) {
+            user.updateCurrentAnimation("idle");
+        }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
+        int key = e.getKeyCode();
+        pressedKeys[key] = false;
 
     }
 

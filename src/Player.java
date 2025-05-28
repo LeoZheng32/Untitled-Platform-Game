@@ -3,6 +3,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 public class Player {
     private final int MOVE_AMT = 3;
@@ -11,72 +12,97 @@ public class Player {
     private boolean facingRight;
     private int xCoord;
     private int yCoord;
-    private int marioScore;
-    private int luigiScore;
+    private Animation idleAnimation;
+
+    private Animation currentAnimation;
+    private Animation idle;
+    private Animation attackOne;
+    private Animation attackTwo;
+    private Animation attackThree;
+    private Animation dead;
+    private Animation defend;
+
     public Player() {
+        createAnimation("idle");
         facingRight = true;
-        xCoord = 50; // starting position is (50, 435), right on top of ground
-        yCoord = 200;
-        marioScore = 0;
-        try {
-            left = ImageIO.read(new File("src/run000.png"));
-            right = ImageIO.read(new File("src/run000.png"));
-        } catch (IOException e) {
-            System.out.println(e.getMessage());
+        xCoord = 30;
+        yCoord = 275;
+    }
+
+    public Animation getCurrentAnimation() {return currentAnimation;}
+
+    public void updateCurrentAnimation(String animation) {
+        createAnimation(animation);
+    }
+
+
+    //This function is changed from the previous version to let the player turn left and right
+    //This version of the function, when combined with getWidth() and getHeight()
+    //Allow the player to turn without needing separate images for left and right
+    public int getxCoord() {
+        if (facingRight) {
+            return xCoord;
+        } else {
+            return (xCoord + (getPlayerImage().getWidth()));
         }
     }
 
-    public int getxCoord() {
-        return xCoord;
-    }
     public int getyCoord() {
         return yCoord;
     }
-    public int getMarioScore() {
-        return marioScore;
+
+    //These functions are newly added to let the player turn left and right
+    //These functions when combined with the updated getxCoord()
+    //Allow the player to turn without needing separate images for left and right
+    public int getHeight() {
+        return getPlayerImage().getHeight();
     }
-    public int getLuigiScore() {
-        return luigiScore;
+
+    public int getWidth() {
+        if (facingRight) {
+            return getPlayerImage().getWidth();
+        } else {
+            return getPlayerImage().getWidth() * -1;
+        }
     }
+
     public void faceRight() {
         facingRight = true;
     }
+
     public void faceLeft() {
         facingRight = false;
     }
+
+
     public void moveRight() {
-        if (xCoord + MOVE_AMT <= 920) {
+        if (xCoord + MOVE_AMT <= 535) {
             xCoord += MOVE_AMT;
         }
     }
+
     public void moveLeft() {
         if (xCoord - MOVE_AMT >= 0) {
             xCoord -= MOVE_AMT;
         }
     }
+
     public void moveUp() {
         if (yCoord - MOVE_AMT >= 0) {
             yCoord -= MOVE_AMT;
         }
     }
+
     public void moveDown() {
-        if (yCoord + MOVE_AMT <= 435) {
+        if (yCoord + MOVE_AMT <= 275) {
             yCoord += MOVE_AMT;
         }
     }
-    public void MarioCollectCoin() {
-        marioScore++;
-    }
-    public void LuigiCollectCoin() {
-        luigiScore++;
-    }
+
     public BufferedImage getPlayerImage() {
-        if (facingRight) {
-            return right;
-        } else {
-            return left;
-        }
+        return currentAnimation.getActiveFrame();
     }
+
     // we use a "bounding Rectangle" for detecting collision
     public Rectangle playerRect() {
         int imageHeight = getPlayerImage().getHeight();
@@ -84,4 +110,33 @@ public class Player {
         Rectangle rect = new Rectangle(xCoord, yCoord, imageWidth, imageHeight);
         return rect;
     }
+
+    private void createAnimation(String animationType) {
+        if (animationType.equals("idle")) {
+            endTimer();
+            currentAnimation = new Animation((new CreateSpriteFrames("src/Resources/idle00", 4)).frames(), "idle", 450);
+        } else if (animationType.equals("attackOne")) {
+            endTimer();
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/attackOne00", 5).frames(), "attackOne", 100);
+        } else if (animationType.equals("attackTwo")) {
+            endTimer();
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/attackTwo00", 4).frames(), "attackTwo", 100);
+        } else if (animationType.equals("attackThree")) {
+            endTimer();
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/attackThree00", 4).frames(), "attackThree", 100);
+        } else if (animationType.equals("dead")) {
+            endTimer();
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/dead00", 6).frames(), "dead", 500);
+        } else if (animationType.equals("defend")) {
+            endTimer();
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/defend00", 5).frames(), "defend", 100);
+        }
+    }
+
+    private void endTimer() {
+        if (currentAnimation != null) {
+            currentAnimation.endTimer();
+        }
+    }
+
 }
