@@ -36,13 +36,18 @@ public class Animation implements ActionListener {
             //This advances the animation to the next frame
             //It also uses modulus to reset the frame to the beginning after the last frame
             //In other words, this allows our animation to loop
-            System.out.println(animationType);
-            if (!animationType.equals("dead")) {
+            if (!animationType.equals("dead") && !animationType.contains("attack")) {
                 currentFrame = (currentFrame + 1) % frames.size();
             } else {
+                if (animationType.equals("dead"))
                 GraphicsPanel.setCanMove(false);
                 if (currentFrame != frames.size()-1) {
                     currentFrame = (currentFrame + 1);
+                }
+                if (animationType.contains("attack")) {
+                    if (currentFrame == frames.size()-1) {
+                        Player.setFinishedAnimation();
+                    }
                 }
             }
         }

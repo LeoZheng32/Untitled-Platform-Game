@@ -48,13 +48,30 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
         if (canMove) {
             // player moves left (A)
             if (pressedKeys[65]) {
+                if (pressedKeys[16]) {
+                    if (user.getCurrentAnimation().animationType() != null & !user.getCurrentAnimation().animationType().equals("run")) {
+                        user.updateCurrentAnimation("run");
+                    }
+                } else {
+                    if (user.getCurrentAnimation().animationType() != null & !user.getCurrentAnimation().animationType().equals("walk")) {
+                        user.updateCurrentAnimation("walk");
+                    }
+                }
                 user.faceLeft();
                 user.moveLeft();
             }
 
             // player moves right (D)
             if (pressedKeys[68]) {
-                user.updateCurrentAnimation("dead");
+                if (pressedKeys[16]) {
+                    if (user.getCurrentAnimation().animationType() != null & !user.getCurrentAnimation().animationType().equals("run")) {
+                        user.updateCurrentAnimation("run");
+                    }
+                } else {
+                    if (user.getCurrentAnimation().animationType() != null & !user.getCurrentAnimation().animationType().equals("walk")) {
+                        user.updateCurrentAnimation("walk");
+                    }
+                }
                 user.faceRight();
                 user.moveRight();
             }
@@ -89,16 +106,15 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
         pressedKeys[key] = true;
-        if (canMove) {
-            user.updateCurrentAnimation("idle");
-        }
     }
 
     @Override
     public void keyReleased(KeyEvent e) {
         int key = e.getKeyCode();
         pressedKeys[key] = false;
-
+        if (canMove) {
+            user.updateCurrentAnimation("idle");
+        }
     }
 
     @Override
@@ -108,7 +124,11 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
     @Override
     public void mousePressed(MouseEvent e) {
+        if (e.getButton() == MouseEvent.BUTTON1) {
+            user.updateCurrentAnimation("attackOne");
+        } else if (e.getButton() == MouseEvent.BUTTON3) {
 
+        }
     }
 
     @Override
