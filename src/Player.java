@@ -5,7 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class Player {
+public class Player implements AnimationHandler {
     private int moveAMT = 1;
     private BufferedImage right;
     private BufferedImage left;
@@ -97,15 +97,12 @@ public class Player {
         }
     }
 
-    public void moveUp() {
-        if (yCoord - moveAMT >= 0) {
-            yCoord -= moveAMT;
+    public void jump() {
+        for (int i = 0; i < 4; i++) {
+            yCoord++;
         }
-    }
-
-    public void moveDown() {
-        if (yCoord + moveAMT <= 400) {
-            yCoord += moveAMT;
+        for (int i = 0; i < 4; i++) {
+            yCoord--;
         }
     }
 
@@ -128,24 +125,24 @@ public class Player {
             currentAnimation = new Animation((new CreateSpriteFrames("src/Resources/idle00", 4)).frames(), "idle", 450);
         } else if (animationType.equals("attackOne")) {
             endTimer();
-            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/attackOne00", 5).frames(), "attackOne", 100);
-            if (finishedAnimation) {
-                endTimer();
-                updateCurrentAnimation("idle");
-            }
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/attackOne00", 5).frames(), "attackOne", 110, this);
         } else if (animationType.equals("attackTwo")) {
             endTimer();
-            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/attackTwo00", 4).frames(), "attackTwo", 100);
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/attackTwo00", 4).frames(), "attackTwo", 110, this);
         } else if (animationType.equals("attackThree")) {
             endTimer();
-            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/attackThree00", 4).frames(), "attackThree", 100);
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/attackThree00", 4).frames(), "attackThree", 110, this);
+        } else if (animationType.equals("runAttack")) {
+            System.out.println("hellod");
+            endTimer();
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/runAttack00", 6).frames(), "runAttack", 110, this);
         } else if (animationType.equals("dead")) {
             endTimer();
-            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/dead00", 6).frames(), "dead", 500);
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/dead00", 6).frames(), "dead", 475);
         } else if (animationType.equals("walk")) {
             endTimer();
             moveAMT = 1;
-            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/walk00", 8).frames(), "walk", 250);
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/walk00", 8).frames(), "walk", 225);
         } else if (animationType.equals("run")) {
             endTimer();
             moveAMT = 2;
@@ -163,4 +160,10 @@ public class Player {
         }
     }
 
+    @Override
+    public void animationCompleted() {
+        endTimer();
+        createAnimation("idle");
+        GraphicsPanel.finishedAttack();
+    }
 }

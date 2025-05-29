@@ -10,10 +10,20 @@ public class Animation implements ActionListener {
     private Timer timer;
     private int currentFrame;
     private String animationType;
+    private AnimationHandler handler;
 
     public Animation(ArrayList<BufferedImage> frames, String animationType, int delay) {
         this.frames = frames;
         this.animationType = animationType;
+        currentFrame = 0;
+        timer = new Timer(delay, this);
+        timer.start();
+    }
+
+    public Animation(ArrayList<BufferedImage> frames, String animationType, int delay, AnimationHandler handler) {
+        this.frames = frames;
+        this.animationType = animationType;
+        this.handler = handler;
         currentFrame = 0;
         timer = new Timer(delay, this);
         timer.start();
@@ -25,6 +35,10 @@ public class Animation implements ActionListener {
 
     public String animationType() {
         return animationType;
+    }
+
+    public int getCurrentFrame() {
+        return currentFrame;
     }
 
     public BufferedImage getActiveFrame() {
@@ -39,14 +53,15 @@ public class Animation implements ActionListener {
             if (!animationType.equals("dead") && !animationType.contains("attack")) {
                 currentFrame = (currentFrame + 1) % frames.size();
             } else {
-                if (animationType.equals("dead"))
-                GraphicsPanel.setCanMove(false);
+                if (animationType.equals("dead")) {
+                    GraphicsPanel.setCanMove(false);
+                }
                 if (currentFrame != frames.size()-1) {
                     currentFrame = (currentFrame + 1);
                 }
-                if (animationType.contains("attack")) {
-                    if (currentFrame == frames.size()-1) {
-                        Player.setFinishedAnimation();
+                else if (animationType.contains("attack") || animationType.equals("runAttack")) {
+                    if (handler != null) {
+                        handler.animationCompleted();
                     }
                 }
             }
