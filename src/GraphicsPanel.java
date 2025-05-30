@@ -16,9 +16,12 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
     private int currentCycle;
     private boolean walking;
     private boolean running;
+
     private static boolean attacking;
+    private static boolean right;
 
     public GraphicsPanel() {
+        right = true;
         walking = false;
         running = false;
         attacking = false;
@@ -63,10 +66,14 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                 g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
             }
         } else if (user.getCurrentAnimation().animationType().equals("attackThree")) {
-            if (user.getCurrentAnimation().getCurrentFrame() == 2) {
+            if (user.getCurrentAnimation().getCurrentFrame() == 2 && right) {
                 g.drawImage(user.getPlayerImage(), user.getxCoord() + 65, user.getyCoord() + 4, user.getWidth(), user.getHeight(), null);
-            } else if (user.getCurrentAnimation().getCurrentFrame() == 3) {
+            } else if (user.getCurrentAnimation().getCurrentFrame() == 2 && !right) {
+                g.drawImage(user.getPlayerImage(), user.getxCoord() - 65, user.getyCoord() + 4, user.getWidth(), user.getHeight(), null);
+            } else if (user.getCurrentAnimation().getCurrentFrame() == 3 && right) {
                 g.drawImage(user.getPlayerImage(), user.getxCoord() + 54, user.getyCoord() + 10, user.getWidth(), user.getHeight(), null);
+            } else if ((user.getCurrentAnimation().getCurrentFrame() == 3) && !right) {
+                g.drawImage(user.getPlayerImage(), user.getxCoord() - 54, user.getyCoord() + 10, user.getWidth(), user.getHeight(), null);
             } else {
                 g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
             }
@@ -77,14 +84,16 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
         if (canMove) {
             // player moves left (A)
-            if (pressedKeys[65]) {
+            if (pressedKeys[65] && !attacking) {
+                right = false;
                 if (pressedKeys[16]) {
-                    if (user.getCurrentAnimation().animationType() != null & !user.getCurrentAnimation().animationType().equals("run")) {
+                    if (user.getCurrentAnimation().animationType() != null && !user.getCurrentAnimation().animationType().equals("run")) {
                         user.updateCurrentAnimation("run");
+                        walking = false;
                         running = true;
                     }
                 } else {
-                    if (user.getCurrentAnimation().animationType() != null & !user.getCurrentAnimation().animationType().equals("walk")) {
+                    if (user.getCurrentAnimation().animationType() != null && !user.getCurrentAnimation().animationType().equals("walk")) {
                         user.updateCurrentAnimation("walk");
                         walking = true;
                     }
@@ -94,10 +103,13 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             }
 
             // player moves right (D)
-            if (pressedKeys[68] && !attacking) {
+            if (pressedKeys[68] && !attacking && !pressedKeys[65]) {
+                System.out.println(attacking);
+                right = true;
                 if (pressedKeys[16]) {
                     if (user.getCurrentAnimation().animationType() != null && !user.getCurrentAnimation().animationType().equals("run")) {
                         user.updateCurrentAnimation("run");
+                        walking = false;
                         running = true;
                     }
                 } else {
@@ -141,11 +153,15 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
     public void keyReleased(KeyEvent e) {
         int key = e.getKeyCode();
         pressedKeys[key] = false;
-        if (canMove) {
+        if (key == 65 || key == 68) {
+            walking = false;
+            running = false;
+        } else if (key == 16) {
+            running = false;
+        }
+        if (canMove && !walking && !running) {
             user.updateCurrentAnimation("idle");
         }
-        walking = false;
-        running = false;
     }
 
     @Override
@@ -155,9 +171,12 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
     @Override
     public void mousePressed(MouseEvent e) {
-        if (e.getButton() == MouseEvent.BUTTON1 && !walking) {
+        // Make it so you cannot press two buttons at once (it freeze the movement) e.g. pressing d and button1 (mouse click) at the same time
+        if (e.getButton() == MouseEvent.BUTTON1 && !attacking) {
             attacking = true;
-            if (!running) {
+//            if (running) {
+//                user.updateCurrentAnimation("runAttack");
+//            } else {
                 if (currentCycle == 0) {
                     user.updateCurrentAnimation("attackOne");
                 } else if (currentCycle == 1) {
@@ -165,9 +184,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                 } else {
                     user.updateCurrentAnimation("attackThree");
                 }
-            } if (running) {
-                user.updateCurrentAnimation("runAttack");
-            }
+//            }
             currentCycle = (currentCycle + 1) % 3;
         } else if (e.getButton() == MouseEvent.BUTTON3) {
 

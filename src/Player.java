@@ -7,12 +7,9 @@ import java.util.ArrayList;
 
 public class Player implements AnimationHandler {
     private int moveAMT = 1;
-    private BufferedImage right;
-    private BufferedImage left;
     private boolean facingRight;
     private int xCoord;
     private int yCoord;
-    private Animation idleAnimation;
 
     private Animation currentAnimation;
     private Animation idle;
@@ -133,7 +130,6 @@ public class Player implements AnimationHandler {
             endTimer();
             currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/attackThree00", 4).frames(), "attackThree", 110, this);
         } else if (animationType.equals("runAttack")) {
-            System.out.println("hellod");
             endTimer();
             currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/runAttack00", 6).frames(), "runAttack", 110, this);
         } else if (animationType.equals("dead")) {
@@ -147,8 +143,10 @@ public class Player implements AnimationHandler {
             endTimer();
             moveAMT = 2;
             currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/run00", 7).frames(), "run", 350);
-        }
-        else if (animationType.equals("defend")) {
+        } else if (animationType.equals("defend")) {
+            endTimer();
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/defend00", 5).frames(), "defend", 100);
+        } else if (animationType.equals("jump")) {
             endTimer();
             currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/defend00", 5).frames(), "defend", 100);
         }
