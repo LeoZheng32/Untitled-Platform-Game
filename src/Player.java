@@ -148,7 +148,7 @@ public class Player implements AnimationHandler {
             currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/defend00", 5).frames(), "defend", 100);
         } else if (animationType.equals("jump")) {
             endTimer();
-            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/defend00", 5).frames(), "defend", 100);
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/jump00", 6).frames(), "jump", 100, this);
         }
     }
 
@@ -159,9 +159,9 @@ public class Player implements AnimationHandler {
     }
 
     @Override
-    public void animationCompleted() {
+    public void animationCompleted(String animation) {
         endTimer();
         createAnimation("idle");
-        GraphicsPanel.finishedAttack();
+        GraphicsPanel.finishedAttack(animation);
     }
 }

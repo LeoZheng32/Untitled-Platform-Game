@@ -16,15 +16,18 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
     private int currentCycle;
     private boolean walking;
     private boolean running;
-
+    private boolean AD;
+    private static boolean jump;
     private static boolean attacking;
     private static boolean right;
 
     public GraphicsPanel() {
+        AD = false;
         right = true;
         walking = false;
         running = false;
         attacking = false;
+        jump = false;
         currentCycle = 0;
         canMove = true;
         pressedKeys = new boolean[128];
@@ -83,8 +86,11 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
         }
 
         if (canMove) {
+            if (pressedKeys[65] && pressedKeys[68]) {
+                AD = true;
+            }
             // player moves left (A)
-            if (pressedKeys[65] && !attacking) {
+            if (pressedKeys[65] && !attacking && !AD) {
                 right = false;
                 if (pressedKeys[16]) {
                     if (user.getCurrentAnimation().animationType() != null && !user.getCurrentAnimation().animationType().equals("run")) {
@@ -103,8 +109,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             }
 
             // player moves right (D)
-            if (pressedKeys[68] && !attacking && !pressedKeys[65]) {
-                System.out.println(attacking);
+            if (pressedKeys[68] && !attacking && !AD) {
                 right = true;
                 if (pressedKeys[16]) {
                     if (user.getCurrentAnimation().animationType() != null && !user.getCurrentAnimation().animationType().equals("run")) {
@@ -122,10 +127,19 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                 user.moveRight();
             }
 
+            if (AD) {
+                walking = false;
+                running = false;
+                user.updateCurrentAnimation("idle");
+            }
             // player jump (space)
             if (pressedKeys[32]) {
-                user.jump();
+                if (!jump) {
+                    user.updateCurrentAnimation("jump");
+                    jump = true;
+                }
             }
+
         }
     }
 
@@ -153,13 +167,30 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
     public void keyReleased(KeyEvent e) {
         int key = e.getKeyCode();
         pressedKeys[key] = false;
+
+        if (!(pressedKeys[65] && pressedKeys[68]) && AD) {
+            AD = false;
+            user.updateCurrentAnimation("walk");
+        }
+
         if (key == 65 || key == 68) {
             walking = false;
             running = false;
         } else if (key == 16) {
             running = false;
         }
-        if (canMove && !walking && !running) {
+
+        if (!walking && attacking) {
+            if (currentCycle == 0) {
+                user.updateCurrentAnimation("attackOne");
+            } else if (currentCycle == 1) {
+                user.updateCurrentAnimation("attackTwo");
+            } else {
+                user.updateCurrentAnimation("attackThree");
+            }
+        }
+
+        if (canMove && !walking && !running && !attacking && !jump) {
             user.updateCurrentAnimation("idle");
         }
     }
@@ -171,7 +202,9 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
     @Override
     public void mousePressed(MouseEvent e) {
-        // Make it so you cannot press two buttons at once (it freeze the movement) e.g. pressing d and button1 (mouse click) at the same time
+        if (walking) {
+            walking = false;
+        }
         if (e.getButton() == MouseEvent.BUTTON1 && !attacking) {
             attacking = true;
 //            if (running) {
@@ -193,19 +226,24 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        walking = false;
     }
 
     @Override
     public void mouseEntered(MouseEvent e) {
-
+        timer.start();
     }
 
     @Override
     public void mouseExited(MouseEvent e) {
-
+        timer.stop();
     }
 
-    public static void finishedAttack() {
-        attacking = false;
+    public static void finishedAttack(String animation) {
+        if (animation.contains("attack")) {
+            attacking = false;
+        } else {
+            jump = false;
+        }
     }
 }
