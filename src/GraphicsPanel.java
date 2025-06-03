@@ -51,16 +51,20 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
         g.drawImage(background, 0, 0, null);
+
         if (user.getCurrentAnimation().animationType().equals("dead")) {
             // 70 is the height of the character
             g.drawImage(user.getPlayerImage(), user.getxCoord(), 275 - user.getHeight() + 70, user.getWidth(), user.getHeight(), null);
+
         } else if (user.getCurrentAnimation().animationType().equals("attackOne")) {
             if (user.getCurrentAnimation().getCurrentFrame() == 4) {
                 g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord() - 20, user.getWidth(), user.getHeight(), null);
             } else {
                 g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
             }
-        } else if (user.getCurrentAnimation().animationType().equals("attackTwo")) {
+        }
+
+        else if (user.getCurrentAnimation().animationType().equals("attackTwo")) {
             if (user.getCurrentAnimation().getCurrentFrame() == 0) {
                 g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord() - 22, user.getWidth(), user.getHeight(), null);
             } else if (user.getCurrentAnimation().getCurrentFrame() == 1) {
@@ -68,7 +72,9 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             } else {
                 g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
             }
-        } else if (user.getCurrentAnimation().animationType().equals("attackThree")) {
+        }
+
+        else if (user.getCurrentAnimation().animationType().equals("attackThree")) {
             if (user.getCurrentAnimation().getCurrentFrame() == 2 && right) {
                 g.drawImage(user.getPlayerImage(), user.getxCoord() + 65, user.getyCoord() + 4, user.getWidth(), user.getHeight(), null);
             } else if (user.getCurrentAnimation().getCurrentFrame() == 2 && !right) {
@@ -80,7 +86,25 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             } else {
                 g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
             }
-        } else {
+        }
+
+        else if (user.getCurrentAnimation().animationType().equals("jump")) {
+            if (!right) {
+                if (user.getCurrentAnimation().getCurrentFrame() == 3) {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord() - 57, user.getyCoord(), user.getWidth(), user.getHeight(), null);
+                } else if (user.getCurrentAnimation().getCurrentFrame() == 4) {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord() - 48, user.getyCoord(), user.getWidth(), user.getHeight(), null);
+                } else if (user.getCurrentAnimation().getCurrentFrame() == 5) {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord() - 42, user.getyCoord(), user.getWidth(), user.getHeight(), null);
+                } else {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
+                }
+            } else {
+                g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
+            }
+        }
+
+        else {
             g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
 
         }
@@ -89,8 +113,34 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             if (pressedKeys[65] && pressedKeys[68]) {
                 AD = true;
             }
+
+            // player jump (space)
+            if (pressedKeys[32]) {
+                if (jump && !AD) {
+                    if (pressedKeys[65]) {
+                        user.faceLeft();
+                        user.updateCurrentAnimation("jump", "left", pressedKeys[16]);
+                        jump = true;
+                    }
+
+                    else if (pressedKeys[68]) {
+                        user.faceRight();
+                        user.updateCurrentAnimation("jump", "right", pressedKeys[16]);
+                        jump = true;
+                    }
+
+                    else {
+                        user.updateCurrentAnimation("jump", "still", true);
+                        jump = true;
+                    }
+                } else {
+                    user.updateCurrentAnimation("jump", "still", true);
+                    jump = true;
+                }
+            }
+
             // player moves left (A)
-            if (pressedKeys[65] && !attacking && !AD) {
+            if (pressedKeys[65] && !attacking && !AD && !jump) {
                 right = false;
                 if (pressedKeys[16]) {
                     if (user.getCurrentAnimation().animationType() != null && !user.getCurrentAnimation().animationType().equals("run")) {
@@ -107,9 +157,8 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                 user.faceLeft();
                 user.moveLeft();
             }
-
             // player moves right (D)
-            if (pressedKeys[68] && !attacking && !AD) {
+            if (pressedKeys[68] && !attacking && !AD && !jump) {
                 right = true;
                 if (pressedKeys[16]) {
                     if (user.getCurrentAnimation().animationType() != null && !user.getCurrentAnimation().animationType().equals("run")) {
@@ -127,17 +176,10 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                 user.moveRight();
             }
 
-            if (AD) {
+            if (AD && !jump) {
                 walking = false;
                 running = false;
                 user.updateCurrentAnimation("idle");
-            }
-            // player jump (space)
-            if (pressedKeys[32]) {
-                if (!jump) {
-                    user.updateCurrentAnimation("jump");
-                    jump = true;
-                }
             }
 
         }
@@ -202,9 +244,10 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
     @Override
     public void mousePressed(MouseEvent e) {
-        if (walking) {
-            walking = false;
-        }
+//        unsure if this does anything
+//        if (walking) {
+//            walking = false;
+//        }
         if (e.getButton() == MouseEvent.BUTTON1 && !attacking) {
             attacking = true;
 //            if (running) {
@@ -219,13 +262,16 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                 }
 //            }
             currentCycle = (currentCycle + 1) % 3;
-        } else if (e.getButton() == MouseEvent.BUTTON3) {
-
+        } else if (e.getButton() == MouseEvent.BUTTON3 && !walking && !running) {
+            user.updateCurrentAnimation("defend");
         }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        if (user.getCurrentAnimation().animationType().equals("defend")) {
+            user.updateCurrentAnimation("idle");
+        }
         walking = false;
     }
 

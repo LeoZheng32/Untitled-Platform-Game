@@ -11,6 +11,8 @@ public class Animation implements ActionListener {
     private int currentFrame;
     private String animationType;
     private AnimationHandler handler;
+    private String direction;
+    private boolean sprint;
 
     public Animation(ArrayList<BufferedImage> frames, String animationType, int delay) {
         this.frames = frames;
@@ -20,10 +22,22 @@ public class Animation implements ActionListener {
         timer.start();
     }
 
+
     public Animation(ArrayList<BufferedImage> frames, String animationType, int delay, AnimationHandler handler) {
         this.frames = frames;
         this.animationType = animationType;
         this.handler = handler;
+        currentFrame = 0;
+        timer = new Timer(delay, this);
+        timer.start();
+    }
+
+    public Animation(ArrayList<BufferedImage> frames, String animationType, int delay, AnimationHandler handler, String direction, boolean sprint) {
+        this.frames = frames;
+        this.animationType = animationType;
+        this.handler = handler;
+        this.direction = direction;
+        this.sprint = sprint;
         currentFrame = 0;
         timer = new Timer(delay, this);
         timer.start();
@@ -56,6 +70,10 @@ public class Animation implements ActionListener {
                 if (animationType.equals("dead")) {
                     GraphicsPanel.setCanMove(false);
                 }
+                if (animationType.equals("jump")) {
+                    handler.jump(currentFrame, direction, sprint);
+                }
+
                 if (currentFrame != frames.size()-1) {
                     currentFrame = (currentFrame + 1);
                 }

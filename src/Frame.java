@@ -8,7 +8,7 @@ public class Frame {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(900, 600);
         frame.setLocationRelativeTo(null);
-        //frame.setResizable(false);
+        frame.setResizable(false);
 
         GraphicsPanel displayPanel = new GraphicsPanel();
 

@@ -39,6 +39,10 @@ public class Player implements AnimationHandler {
         createAnimation(animation);
     }
 
+    public void updateCurrentAnimation(String animation, String direction, boolean sprint) {
+        createAnimation(animation, direction, sprint);
+    }
+
     public void resetAnimation() {
         updateCurrentAnimation("idle");
     }
@@ -82,9 +86,20 @@ public class Player implements AnimationHandler {
     }
 
 
+
     public void moveRight() {
         if (xCoord + moveAMT <= 900 - getWidth()) {
             xCoord += moveAMT;
+        }
+    }
+
+    public void moveRight(boolean sprint) {
+        if (xCoord + moveAMT <= 900 - getWidth()) {
+            if (!sprint) {
+                xCoord += 10;
+            } else {
+                xCoord += 25;
+            }
         }
     }
 
@@ -94,13 +109,22 @@ public class Player implements AnimationHandler {
         }
     }
 
-    public void jump() {
-        for (int i = 0; i < 4; i++) {
-            yCoord++;
+    public void moveLeft(boolean sprint) {
+        if (xCoord - moveAMT >= 0) {
+            if (!sprint) {
+                xCoord -= 10;
+            } else {
+                xCoord -= 25;
+            }
         }
-        for (int i = 0; i < 4; i++) {
-            yCoord--;
-        }
+    }
+
+    public void moveUp() {
+        yCoord-= 25;
+    }
+
+    public void moveDown() {
+        yCoord+= 25;
     }
 
     public BufferedImage getPlayerImage() {
@@ -146,9 +170,19 @@ public class Player implements AnimationHandler {
         } else if (animationType.equals("defend")) {
             endTimer();
             currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/defend00", 5).frames(), "defend", 100);
-        } else if (animationType.equals("jump")) {
+        }
+    }
+
+    public void createAnimation(String animationType, String direction, boolean sprint) {
+        if (direction.equals("left")) {
             endTimer();
-            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/jump00", 6).frames(), "jump", 100, this);
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/jump00", 6).frames(), animationType, 75, this, direction, sprint);
+        } else if (direction.equals("right")) {
+            endTimer();
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/jump00", 6).frames(), animationType, 75, this, direction, sprint);
+        } else {
+            endTimer();
+            currentAnimation = new Animation(new CreateSpriteFrames("src/Resources/jump00", 6).frames(), animationType, 75, this, direction, sprint);
         }
     }
 
@@ -163,5 +197,22 @@ public class Player implements AnimationHandler {
         endTimer();
         createAnimation("idle");
         GraphicsPanel.finishedAttack(animation);
+    }
+
+    @Override
+    public void jump(int currentFrame, String direction, boolean sprint) {
+        if (currentFrame < 3) {
+            moveUp();
+        }
+        else {
+            moveDown();
+        }
+
+        if (direction.equals("right")) {
+            moveRight(sprint);
+        }
+        if (direction.equals("left")) {
+            moveLeft(sprint);
+        }
     }
 }
