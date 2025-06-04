@@ -94,13 +94,21 @@ public class Player implements AnimationHandler {
     }
 
     public void moveRight(boolean sprint) {
-        if (xCoord + moveAMT <= 900 - getWidth()) {
-            if (!sprint) {
-                xCoord += 10;
-            } else {
+        if (sprint) {
+            if (xCoord + moveAMT <= 890 - getWidth()) {
                 xCoord += 25;
             }
+        } else {
+            if (xCoord + moveAMT <= 880 - getWidth()) {
+                xCoord += 10;
+            }
         }
+    }
+
+    public boolean canJumpRight(boolean sprint) {
+        if (xCoord + moveAMT <= 900 - getWidth()) {
+        }
+        return true;
     }
 
     public void moveLeft() {
@@ -213,6 +221,15 @@ public class Player implements AnimationHandler {
         }
         if (direction.equals("left")) {
             moveLeft(sprint);
+        }
+    }
+
+    @Override
+    public void runAttacKMove() {
+        if (facingRight) {
+            moveRight(true);
+        } else {
+            moveLeft(true);
         }
     }
 }

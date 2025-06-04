@@ -74,10 +74,14 @@ public class Animation implements ActionListener {
                     handler.jump(currentFrame, direction, sprint);
                 }
 
+                if (animationType.equals("runAttack")) {
+                    handler.runAttacKMove();
+                }
+
                 if (currentFrame != frames.size()-1) {
                     currentFrame = (currentFrame + 1);
                 }
-                else if (animationType.contains("attack") || animationType.equals("jump")) {
+                else if (animationType.contains("attack") || animationType.equals("jump") || animationType.equals("runAttack")) {
                     if (handler != null) {
                         handler.animationCompleted(animationType);
                     }

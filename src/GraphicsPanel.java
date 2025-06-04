@@ -14,20 +14,13 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
     private Timer timer;
     private Player user;
     private int currentCycle;
-    private boolean walking;
-    private boolean running;
-    private boolean AD;
+    private boolean walking, running, AD, defend;
     private static boolean jump;
     private static boolean attacking;
     private static boolean right;
 
     public GraphicsPanel() {
-        AD = false;
         right = true;
-        walking = false;
-        running = false;
-        attacking = false;
-        jump = false;
         currentCycle = 0;
         canMove = true;
         pressedKeys = new boolean[128];
@@ -115,8 +108,8 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             }
 
             // player jump (space)
-            if (pressedKeys[32]) {
-                if (jump && !AD) {
+            if (pressedKeys[32] && !jump) {
+                if (!AD) {
                     if (pressedKeys[65]) {
                         user.faceLeft();
                         user.updateCurrentAnimation("jump", "left", pressedKeys[16]);
@@ -133,10 +126,8 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                         user.updateCurrentAnimation("jump", "still", true);
                         jump = true;
                     }
-                } else {
-                    user.updateCurrentAnimation("jump", "still", true);
-                    jump = true;
                 }
+
             }
 
             // player moves left (A)
@@ -210,7 +201,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
         int key = e.getKeyCode();
         pressedKeys[key] = false;
 
-        if (!(pressedKeys[65] && pressedKeys[68]) && AD) {
+        if (!(pressedKeys[65] && pressedKeys[68]) && AD && !jump) {
             AD = false;
             user.updateCurrentAnimation("walk");
         }
@@ -220,6 +211,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             running = false;
         } else if (key == 16) {
             running = false;
+            //if added walking true then it does the attack on a/d release
         }
 
         if (!walking && attacking) {
@@ -248,11 +240,11 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 //        if (walking) {
 //            walking = false;
 //        }
-        if (e.getButton() == MouseEvent.BUTTON1 && !attacking) {
+        if (e.getButton() == MouseEvent.BUTTON1 && !attacking && !jump && !defend) {
             attacking = true;
-//            if (running) {
-//                user.updateCurrentAnimation("runAttack");
-//            } else {
+            if (running) {
+                user.updateCurrentAnimation("runAttack");
+            } else {
                 if (currentCycle == 0) {
                     user.updateCurrentAnimation("attackOne");
                 } else if (currentCycle == 1) {
@@ -260,9 +252,10 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                 } else {
                     user.updateCurrentAnimation("attackThree");
                 }
-//            }
-            currentCycle = (currentCycle + 1) % 3;
-        } else if (e.getButton() == MouseEvent.BUTTON3 && !walking && !running) {
+                currentCycle = (currentCycle + 1) % 3;
+            }
+        } else if (e.getButton() == MouseEvent.BUTTON3 && !walking && !running && !jump) {
+            defend = true;
             user.updateCurrentAnimation("defend");
         }
     }
@@ -270,6 +263,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
     @Override
     public void mouseReleased(MouseEvent e) {
         if (user.getCurrentAnimation().animationType().equals("defend")) {
+            defend = false;
             user.updateCurrentAnimation("idle");
         }
         walking = false;
