@@ -14,10 +14,8 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
     private Timer timer;
     private Player user;
     private int currentCycle;
-    private boolean walking, running, AD, defend;
-    private static boolean jump;
-    private static boolean attacking;
-    private static boolean right;
+    private static boolean walking, running, AD, defend;
+    private static boolean right, jump, attacking, attackRun;
 
     public GraphicsPanel() {
         right = true;
@@ -214,7 +212,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             //if added walking true then it does the attack on a/d release
         }
 
-        if (!walking && attacking) {
+        if (!walking && attacking && !attackRun) {
             if (currentCycle == 0) {
                 user.updateCurrentAnimation("attackOne");
             } else if (currentCycle == 1) {
@@ -243,6 +241,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
         if (e.getButton() == MouseEvent.BUTTON1 && !attacking && !jump && !defend) {
             attacking = true;
             if (running) {
+                attackRun = true;
                 user.updateCurrentAnimation("runAttack");
             } else {
                 if (currentCycle == 0) {
@@ -258,6 +257,16 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             defend = true;
             user.updateCurrentAnimation("defend");
         }
+    }
+
+    public static void resetBoolean() {
+        walking = false;
+        running = false;
+        AD = false;
+        defend = false;
+        jump = false;
+        attacking = false;
+        attackRun = false;
     }
 
     @Override
@@ -282,7 +291,11 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
     public static void finishedAttack(String animation) {
         if (animation.contains("attack")) {
             attacking = false;
-        } else {
+        } else if (animation.equals("runAttack")) {
+            attackRun = false;
+            resetBoolean();
+        }
+        else {
             jump = false;
         }
     }
