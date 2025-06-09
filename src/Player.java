@@ -205,6 +205,7 @@ public class Player implements AnimationHandler {
         endTimer();
         createAnimation("idle");
         GraphicsPanel.finishedAttack(animation);
+
     }
 
     @Override
