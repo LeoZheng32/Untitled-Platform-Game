@@ -10,12 +10,12 @@ import java.util.ArrayList;
 public class GraphicsPanel extends JPanel implements ActionListener, KeyListener, MouseListener {
     private JLabel title;
     private JButton play, controls, backButton;
-    private BufferedImage currentBackground;
-    private BufferedImage background;
-    private BufferedImage menuBackground;
+    private BufferedImage currentBackground, background, menuBackground;
+
     private boolean[] pressedKeys;
     private Timer timer;
     private Player user;
+    private Enemy enemy;
     private int currentCycle;
     private boolean isPlay;
     private static boolean walking, running, AD, defend, right, jump, attacking, attackRun, canMove;
@@ -51,16 +51,25 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
+
         g.drawImage(currentBackground, 0, 0, null);
         if (isPlay) {
+            if (enemy != null) {
+                enemy.update();
+                enemy.draw(g);
+            }
+            drawHealthBar(g);
             if (user.getCurrentAnimation().animationType().equals("dead")) {
                 // 70 is the height of the character
                 g.drawImage(user.getPlayerImage(), user.getxCoord(), 275 - user.getHeight() + 70, user.getWidth(), user.getHeight(), null);
 
             } else if (user.getCurrentAnimation().animationType().equals("attackOne")) {
-                if (user.getCurrentAnimation().getCurrentFrame() == 4) {
+                if (user.getCurrentAnimation().getCurrentFrame() == 4 && right) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord() - 20, user.getWidth(), user.getHeight(), null);
-                } else {
+                } else if (user.getCurrentAnimation().getCurrentFrame() == 4 && !right) {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord() - 20, user.getyCoord() - 20, user.getWidth(), user.getHeight(), null);
+                }
+                else {
                     g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
                 }
             }
@@ -111,8 +120,10 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             }
 
             if (canMove) {
-                if (pressedKeys[65] && pressedKeys[68]) {
-                    AD = true;
+                if (attackRun && (!pressedKeys[65] && !pressedKeys[68])) {
+                    attackRun = false;
+                    attacking = false;
+                    user.updateCurrentAnimation("idle");
                 }
 
                 // player jump (space)
@@ -259,8 +270,36 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
         repaint();
     }
 
-    public static void setCanMove(boolean ableToMove) {
-        canMove = ableToMove;
+    private void drawHealthBar(Graphics g) {
+        int barWidth = 200;
+        int barHeight = 25;
+        int x = 20;
+        int y = 20;
+
+        double healthPercent = user.getCurrentHealth() / (double) user.getMaxHealth();
+
+        // Background
+        g.setColor(Color.DARK_GRAY);
+        g.fillRect(x, y, barWidth, barHeight);
+
+        // Scaled Health Bar
+        int scaledWidth = (int) (healthPercent * barWidth);
+        g.setColor(Color.RED);
+        g.fillRect(x, y, scaledWidth, barHeight);
+
+        // Border
+        g.setColor(Color.BLACK);
+        g.drawRect(x, y, barWidth, barHeight);
+
+        // Optional: Show percentage text
+        g.setColor(Color.WHITE);
+        g.setFont(new Font("Arial", Font.BOLD, 14));
+        String percentage = (int)(healthPercent * 100) + "%";
+        g.drawString("HP: " + percentage, x + 5, y + 17);
+    }
+
+    public static void setCanMove(boolean a) {
+        canMove = a;
     }
 
     @Override
@@ -290,6 +329,13 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
     public void keyPressed(KeyEvent e) {
         int key = e.getKeyCode();
         pressedKeys[key] = true;
+
+        // Update AD state immediately
+        if (pressedKeys[65] && pressedKeys[68]) {
+            AD = true;
+        } else {
+            AD = false;
+        }
     }
 
     @Override
@@ -332,10 +378,6 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
     @Override
     public void mousePressed(MouseEvent e) {
-//        unsure if this does anything
-//        if (walking) {
-//            walking = false;
-//        }
         if (e.getButton() == MouseEvent.BUTTON1 && !attacking && !jump && !defend) {
             attacking = true;
             if (running) {
@@ -349,7 +391,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                 } else {
                     user.updateCurrentAnimation("attackThree");
                 }
-                //currentCycle = (currentCycle + 1) % 3;
+                currentCycle = (currentCycle + 1) % 3;
             }
         } else if (e.getButton() == MouseEvent.BUTTON3 && !walking && !running && !jump) {
             defend = true;

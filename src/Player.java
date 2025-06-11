@@ -10,6 +10,8 @@ public class Player implements AnimationHandler {
     private boolean facingRight;
     private int xCoord;
     private int yCoord;
+    private int maxHealth = 100;
+    private int currentHealth = 100;
 
     private Animation currentAnimation;
     private Animation idle;
@@ -198,6 +200,24 @@ public class Player implements AnimationHandler {
         if (currentAnimation != null) {
             currentAnimation.endTimer();
         }
+    }
+
+    public int getMaxHealth() {
+        return maxHealth;
+    }
+
+    public int getCurrentHealth() {
+        return currentHealth;
+    }
+
+    public void takeDamage(int amount) {
+        currentHealth -= amount;
+        if (currentHealth < 0) currentHealth = 0;
+    }
+
+    public void heal(int amount) {
+        currentHealth += amount;
+        if (currentHealth > maxHealth) currentHealth = maxHealth;
     }
 
     @Override
