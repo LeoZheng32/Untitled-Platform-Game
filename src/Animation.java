@@ -61,10 +61,7 @@ public class Animation implements ActionListener {
 
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() instanceof Timer) {
-            //This advances the animation to the next frame
-            //It also uses modulus to reset the frame to the beginning after the last frame
-            //In other words, this allows our animation to loop
-            if (!animationType.equals("dead") && !animationType.contains("attack") && !animationType.equals("runAttack") && !animationType.equals("jump")) {
+            if (!animationType.equals("dead") && !animationType.contains("attack") && !animationType.equals("runAttack") && !animationType.equals("jump") && !animationType.equals("Dead")) {
                 currentFrame = (currentFrame + 1) % frames.size();
             } else {
                 if (animationType.equals("dead")) {
@@ -81,7 +78,7 @@ public class Animation implements ActionListener {
                 if (currentFrame != frames.size()-1) {
                     currentFrame = (currentFrame + 1);
                 }
-                else if (animationType.contains("attack") || animationType.equals("jump") || animationType.equals("runAttack")) {
+                else if (animationType.contains("attack") || animationType.equals("jump") || animationType.equals("runAttack") || animationType.equals("Dead")) {
                     if (handler != null) {
                         handler.animationCompleted(animationType);
                     }

@@ -107,12 +107,6 @@ public class Player implements AnimationHandler {
         }
     }
 
-    public boolean canJumpRight(boolean sprint) {
-        if (xCoord + moveAMT <= 900 - getWidth()) {
-        }
-        return true;
-    }
-
     public void moveLeft() {
         if (xCoord - moveAMT >= 0) {
             xCoord -= moveAMT;
@@ -141,7 +135,6 @@ public class Player implements AnimationHandler {
         return currentAnimation.getActiveFrame();
     }
 
-    // we use a "bounding Rectangle" for detecting collision
     public Rectangle playerRect() {
         int imageHeight = getPlayerImage().getHeight();
         int imageWidth = getPlayerImage().getWidth();
@@ -215,9 +208,13 @@ public class Player implements AnimationHandler {
         if (currentHealth < 0) currentHealth = 0;
     }
 
-    public void heal(int amount) {
-        currentHealth += amount;
-        if (currentHealth > maxHealth) currentHealth = maxHealth;
+    public Rectangle getAttackHitbox() {
+        int attackRange = 40;
+        if (facingRight) {
+            return new Rectangle(xCoord + getWidth(), yCoord, attackRange, getHeight());
+        } else {
+            return new Rectangle(xCoord - attackRange, yCoord, attackRange, getHeight());
+        }
     }
 
     @Override

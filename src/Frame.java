@@ -4,7 +4,7 @@ public class Frame {
     JFrame frame;
 
     public Frame() {
-        frame = new JFrame("Untitled Game");
+        frame = new JFrame("Endless Onslaught");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(900, 600);
         frame.setLocationRelativeTo(null);
@@ -15,7 +15,5 @@ public class Frame {
         frame.add(displayPanel);
 
         frame.setVisible(true);
-        //frame.revalidate();
-
     }
 }

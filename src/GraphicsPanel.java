@@ -7,18 +7,21 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
-public class GraphicsPanel extends JPanel implements ActionListener, KeyListener, MouseListener {
+public class GraphicsPanel extends JPanel implements ActionListener, KeyListener, MouseListener, EnemySpawnHandler {
     private JLabel title;
-    private JButton play, controls, backButton;
+    private JButton play, controls, backButton, exitButton;
     private BufferedImage currentBackground, background, menuBackground;
-
+    private int enemiesDefeated;
+    ArrayList<Enemy> enemies = new ArrayList<>();
     private boolean[] pressedKeys;
     private Timer timer;
     private Player user;
     private Enemy enemy;
+    private Portal portal;
     private int currentCycle;
     private boolean isPlay;
-    private static boolean walking, running, AD, defend, right, jump, attacking, attackRun, canMove;
+    private static boolean walking, running, AD, defend, right, jump, attacking, attackRun, canMove, dead;
+    private boolean damageDealt;
 
     public GraphicsPanel() {
         right = true;
@@ -27,6 +30,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
         pressedKeys = new boolean[128];
         timer = new Timer(2, this);
         timer.start();
+
         try {
             background = ImageIO.read(new File("src/Resources/background.jpeg"));
             menuBackground = ImageIO.read(new File("src/Resources/gameMenuBackground.jpeg"));
@@ -35,6 +39,8 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             System.out.println(e.getMessage());
         }
         user = new Player();
+        enemy = new Enemy(user, this);
+        portal = new Portal();
         addKeyListener(this);
         addMouseListener(this);
         setFocusable(true);
@@ -54,20 +60,47 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
         g.drawImage(currentBackground, 0, 0, null);
         if (isPlay) {
+            g.drawImage(portal.getImage(), portal.getxCoord(), portal.getyCoord(), null);
             if (enemy != null) {
                 enemy.update();
                 enemy.draw(g);
             }
             drawHealthBar(g);
+            drawKillFeed(g);
+            if (!attacking) {
+                damageDealt = false;
+            }
+
+            if (user.getCurrentHealth() <= 0 && !dead) {
+                dead = true;
+                canMove = false;
+                attacking = false;
+                running = false;
+                walking = false;
+                defend = false;
+                jump = false;
+                attackRun = false;
+                user.updateCurrentAnimation("dead");
+            }
+
             if (user.getCurrentAnimation().animationType().equals("dead")) {
-                // 70 is the height of the character
-                g.drawImage(user.getPlayerImage(), user.getxCoord(), 275 - user.getHeight() + 70, user.getWidth(), user.getHeight(), null);
+                g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord() - user.getHeight() + 130, user.getWidth(), user.getHeight(), null);
 
             } else if (user.getCurrentAnimation().animationType().equals("attackOne")) {
                 if (user.getCurrentAnimation().getCurrentFrame() == 4 && right) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord() - 20, user.getWidth(), user.getHeight(), null);
+                    if (user.getAttackHitbox().intersects(enemy.getHitbox())) {
+                        if (!damageDealt) {
+                            enemy.takeDamage(20);
+                            damageDealt = true;
+                        }
+                    }
                 } else if (user.getCurrentAnimation().getCurrentFrame() == 4 && !right) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord() - 20, user.getyCoord() - 20, user.getWidth(), user.getHeight(), null);
+                    if (!damageDealt) {
+                        enemy.takeDamage(20);
+                        damageDealt = true;
+                    }
                 }
                 else {
                     g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
@@ -81,20 +114,60 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                     g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord() - 14, user.getWidth(), user.getHeight(), null);
                 } else {
                     g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
+                    if (!damageDealt) {
+                        enemy.takeDamage(20);
+                        damageDealt = true;
+                    }
                 }
             }
 
             else if (user.getCurrentAnimation().animationType().equals("attackThree")) {
                 if (user.getCurrentAnimation().getCurrentFrame() == 2 && right) {
-                    g.drawImage(user.getPlayerImage(), user.getxCoord() + 65, user.getyCoord() + 4, user.getWidth(), user.getHeight(), null);
+                    g.drawImage(user.getPlayerImage(), user.getxCoord() + 100, user.getyCoord() + 4, user.getWidth(), user.getHeight(), null);
+                    if (!damageDealt) {
+                        enemy.takeDamage(20);
+                        damageDealt = true;
+                    }
                 } else if (user.getCurrentAnimation().getCurrentFrame() == 2 && !right) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord() - 65, user.getyCoord() + 4, user.getWidth(), user.getHeight(), null);
+                    if (!damageDealt) {
+                        enemy.takeDamage(20);
+                        damageDealt = true;
+                    }
                 } else if (user.getCurrentAnimation().getCurrentFrame() == 3 && right) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord() + 54, user.getyCoord() + 10, user.getWidth(), user.getHeight(), null);
                 } else if ((user.getCurrentAnimation().getCurrentFrame() == 3) && !right) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord() - 54, user.getyCoord() + 10, user.getWidth(), user.getHeight(), null);
                 } else {
                     g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
+                }
+            }
+            else if (user.getCurrentAnimation().animationType().equals("runAttack")) {
+                int currentFrame = user.getCurrentAnimation().getCurrentFrame();
+                if (!damageDealt) {
+                    enemy.takeDamage(20);
+                    damageDealt = true;
+                }
+                if (currentFrame == 0 && right) {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord() + 30, user.getyCoord() - 30, user.getWidth(), user.getHeight(), null);
+                } else if (currentFrame == 0) {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord() - 30, user.getyCoord() - 30, user.getWidth(), user.getHeight(), null);
+                } else if (currentFrame == 1 && right) {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord() + 30, user.getyCoord() - 15, user.getWidth(), user.getHeight(), null);
+                } else if (currentFrame == 1) {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord() - 30, user.getyCoord() - 15, user.getWidth(), user.getHeight(), null);
+                }
+                else if (currentFrame == 2 && right) {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord() + 30, user.getyCoord() - 10, user.getWidth(), user.getHeight(), null);
+                } else if (currentFrame == 2) {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord() - 30, user.getyCoord() - 10, user.getWidth(), user.getHeight(), null);
+                } else if (currentFrame == 3 && right) {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord() + 20, user.getyCoord() - 5, user.getWidth(), user.getHeight(), null);
+                } else if (currentFrame == 3) {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord() - 20, user.getyCoord() - 5, user.getWidth(), user.getHeight(), null);
+                } else {
+                    g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
+
                 }
             }
 
@@ -119,7 +192,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
             }
 
-            if (canMove) {
+            if (!dead && canMove) {
                 if (attackRun && (!pressedKeys[65] && !pressedKeys[68])) {
                     attackRun = false;
                     attacking = false;
@@ -188,7 +261,14 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                     user.updateCurrentAnimation("idle");
                 }
             }
+            if (dead) {
+                loadEndMenu();
+            }
         }
+    }
+
+    public static boolean getDefending() {
+        return defend;
     }
 
     public void loadMenu() {
@@ -270,6 +350,28 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
         repaint();
     }
 
+    public void loadEndMenu() {
+        this.removeAll();
+
+        JLabel gameOverLabel = new JLabel("GAME OVER");
+        gameOverLabel.setFont(new Font("Monospaced", Font.BOLD, 70));
+        gameOverLabel.setForeground(Color.RED);
+        gameOverLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        gameOverLabel.setBounds(150, 80, 500, 80);
+        gameOverLabel.setOpaque(true);
+        gameOverLabel.setBackground(new Color(0, 0, 0, 180));
+        add(gameOverLabel);
+
+        JLabel killsLabel = new JLabel("Total Kills: " + enemiesDefeated);
+        killsLabel.setFont(new Font("Monospaced", Font.BOLD, 40));
+        killsLabel.setForeground(Color.WHITE);
+        killsLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        killsLabel.setBounds(200, 200, 400, 60);
+        killsLabel.setOpaque(true);
+        killsLabel.setBackground(new Color(0, 0, 0, 180));
+        add(killsLabel);
+    }
+
     private void drawHealthBar(Graphics g) {
         int barWidth = 200;
         int barHeight = 25;
@@ -278,24 +380,34 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
         double healthPercent = user.getCurrentHealth() / (double) user.getMaxHealth();
 
-        // Background
         g.setColor(Color.DARK_GRAY);
         g.fillRect(x, y, barWidth, barHeight);
 
-        // Scaled Health Bar
         int scaledWidth = (int) (healthPercent * barWidth);
         g.setColor(Color.RED);
         g.fillRect(x, y, scaledWidth, barHeight);
 
-        // Border
         g.setColor(Color.BLACK);
         g.drawRect(x, y, barWidth, barHeight);
 
-        // Optional: Show percentage text
         g.setColor(Color.WHITE);
         g.setFont(new Font("Arial", Font.BOLD, 14));
         String percentage = (int)(healthPercent * 100) + "%";
         g.drawString("HP: " + percentage, x + 5, y + 17);
+    }
+
+    private void drawKillFeed(Graphics g) {
+        int x = getWidth() - 220;
+        int y = 20;
+        int width = 200;
+        int height = 30;
+
+        g.setFont(new Font("Monospaced", Font.BOLD, 16));
+        g.setColor(new Color(0, 0, 0, 150));
+        g.fillRoundRect(x, y, width, height, 10, 10);
+
+        g.setColor(Color.WHITE);
+        g.drawString("Kills: " + enemiesDefeated, x + 15, y + 20);
     }
 
     public static void setCanMove(boolean a) {
@@ -327,10 +439,10 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
     @Override
     public void keyPressed(KeyEvent e) {
+        if (dead) return;
         int key = e.getKeyCode();
         pressedKeys[key] = true;
 
-        // Update AD state immediately
         if (pressedKeys[65] && pressedKeys[68]) {
             AD = true;
         } else {
@@ -366,7 +478,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             }
         }
 
-        if (canMove && !walking && !running && !attacking && !jump) {
+        if (canMove && !walking && !running && !attacking && !jump && !dead) {
             user.updateCurrentAnimation("idle");
         }
     }
@@ -411,7 +523,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
     @Override
     public void mouseReleased(MouseEvent e) {
-        if (user.getCurrentAnimation().animationType().equals("defend")) {
+        if (e.getButton() == MouseEvent.BUTTON3 && user.getCurrentAnimation().animationType().equals("defend")) {
             defend = false;
             user.updateCurrentAnimation("idle");
         }
@@ -438,5 +550,11 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
         } else {
             jump = false;
         }
+    }
+
+    @Override
+    public void spawnNewEnemy() {
+        enemy = new Enemy(user, this);
+        enemiesDefeated++;
     }
 }
