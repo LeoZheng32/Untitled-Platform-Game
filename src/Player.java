@@ -31,6 +31,10 @@ public class Player implements AnimationHandler {
         yCoord = 400;
     }
 
+    public int getSpeed() {
+        return moveAMT;
+    }
+
     public static void setFinishedAnimation() {
         finishedAnimation = true;
     }
@@ -203,6 +207,10 @@ public class Player implements AnimationHandler {
         return currentHealth;
     }
 
+    public void heal(double amount) {
+        currentHealth *= amount;
+    }
+
     public void takeDamage(int amount) {
         currentHealth -= amount;
         if (currentHealth < 0) currentHealth = 0;
@@ -214,6 +222,14 @@ public class Player implements AnimationHandler {
             return new Rectangle(xCoord + getWidth(), yCoord, attackRange, getHeight());
         } else {
             return new Rectangle(xCoord - attackRange, yCoord, attackRange, getHeight());
+        }
+    }
+
+    public Rectangle getHitbox() {
+        if (facingRight) {
+            return new Rectangle(xCoord, yCoord, getWidth(), getHeight());
+        } else {
+            return new Rectangle(xCoord, yCoord, getWidth() * -1, getHeight());
         }
     }
 

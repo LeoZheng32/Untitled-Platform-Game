@@ -6,9 +6,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public class Enemy implements AnimationHandler {
+    private static int damage;
     private EnemySpawnHandler spawnHandler;
     private int xCoord;
     private int yCoord;
+    private int playerCenterX;
     private boolean isDead;
     private boolean facingRight;
     private Animation currentAnimation;
@@ -21,6 +23,7 @@ public class Enemy implements AnimationHandler {
     private int currentHealth = 100;
 
     public Enemy(Player player, EnemySpawnHandler spawnHandler) {
+        damage = 5;
         animationCompleted = true;
         this.player = player;
         this.spawnHandler = spawnHandler;
@@ -32,18 +35,18 @@ public class Enemy implements AnimationHandler {
 
     public void update() {
         if (!isDead) {
-            int playerX = player.getxCoord();
-            int distance = Math.abs(playerX - xCoord);
+            playerCenterX = player.getxCoord() + player.getWidth() / 2;
+            facingRight = xCoord + Math.abs(getImage().getWidth()) / 2 < playerCenterX;
 
-            int playerCenterX = player.getxCoord() + player.getWidth() / 2;
-            facingRight = xCoord < playerCenterX;
+            int distance = Math.abs(playerCenterX - xCoord + Math.abs(getImage().getWidth()) / 2);
+
 
             if (isAnimation("attack")) {
                 int currentFrame = currentAnimation.getCurrentFrame();
 
-                if ((currentFrame == 4 || currentFrame == 8) && !hasDealtDamage && distance <= attackRange) {
+                if ((currentFrame == 4) && !hasDealtDamage && distance <= attackRange) {
                     if (!GraphicsPanel.getDefending()) {
-                        player.takeDamage(10);
+                        player.takeDamage(damage);
                     }
                     hasDealtDamage = true;
                 }
@@ -60,7 +63,7 @@ public class Enemy implements AnimationHandler {
                 if (!isAnimation("walk")) {
                     createAnimation("walk");
                 }
-                moveTowardPlayer(playerX);
+                moveTowardPlayer();
             } else {
                 if (!isAnimation("attack")) {
                     createAnimation("attack");
@@ -70,10 +73,12 @@ public class Enemy implements AnimationHandler {
         }
     }
 
-    public void moveTowardPlayer(int playerX) {
-        if (xCoord > playerX + attackRange / 2) {
+    public void moveTowardPlayer() {
+        int enemyCenterX = xCoord + Math.abs(getImage().getWidth()) / 2;
+
+        if (enemyCenterX > playerCenterX + attackRange / 2) {
             moveLeft();
-        } else if (xCoord < playerX - attackRange / 2) {
+        } else if (enemyCenterX < playerCenterX - attackRange / 2) {
             moveRight();
         }
     }
@@ -101,7 +106,11 @@ public class Enemy implements AnimationHandler {
     }
 
     public int getWidth() {
-        return facingRight ? getImage().getWidth() : -getImage().getWidth();
+        if (facingRight) {
+            return getImage().getWidth();
+        } else {
+            return getImage().getWidth() * -1;
+        }
     }
 
     public int getHeight() {
@@ -109,7 +118,13 @@ public class Enemy implements AnimationHandler {
     }
 
     public Rectangle getHitbox() {
-        return new Rectangle(xCoord, yCoord, getImage().getWidth(), getImage().getHeight());
+        return new Rectangle(xCoord, yCoord, getImage().getWidth() * -1, getImage().getHeight());
+    }
+
+    public void drawHitbox(Graphics g) {
+        Rectangle hitbox = getHitbox();
+        g.setColor(new Color(255, 0, 0, 100));
+        g.drawRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
     }
 
     private void createAnimation(String type) {
@@ -132,6 +147,7 @@ public class Enemy implements AnimationHandler {
     }
 
     public void draw(Graphics g) {
+        drawHitbox(g);
         BufferedImage image = getImage();
         int frame = currentAnimation.getCurrentFrame();
 
@@ -140,8 +156,8 @@ public class Enemy implements AnimationHandler {
         }
 
         else if (isAnimation("attack")) {
-            if (frame == 5 && facingRight) {
-                g.drawImage(image, xCoord + 20, yCoord - 30, getWidth(), getHeight(), null);
+            if (frame == 4) {
+                g.drawImage(image, xCoord + 20, yCoord - 35, getWidth(), getHeight(), null);
             } else if (frame == 5) {
                 g.drawImage(image, xCoord - 20, yCoord - 30, getWidth(), getHeight(), null);
             } else {
@@ -171,6 +187,9 @@ public class Enemy implements AnimationHandler {
             animationCompleted = true;
             hasSpawnedReplacement = true;
             if (spawnHandler != null) {
+                if (GraphicsPanel.getEnemiesDefeated() % 5 == 0) {
+                    damage += 1;
+                }
                 spawnHandler.spawnNewEnemy();
             }
         }

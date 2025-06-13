@@ -9,10 +9,11 @@ import java.util.ArrayList;
 
 public class GraphicsPanel extends JPanel implements ActionListener, KeyListener, MouseListener, EnemySpawnHandler {
     private JLabel title;
-    private JButton play, controls, backButton, exitButton;
+    private JButton play, controls, backButton;
     private BufferedImage currentBackground, background, menuBackground;
-    private int enemiesDefeated;
-    ArrayList<Enemy> enemies = new ArrayList<>();
+    private static int enemiesDefeated;
+    private int userDamage;
+    private double healAmount;
     private boolean[] pressedKeys;
     private Timer timer;
     private Player user;
@@ -24,6 +25,8 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
     private boolean damageDealt;
 
     public GraphicsPanel() {
+        userDamage = 10;
+        healAmount = 1.1;
         right = true;
         currentCycle = 0;
         canMove = true;
@@ -54,6 +57,12 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
 
     }
 
+    public void drawHitbox(Graphics g) {
+        Rectangle hitbox = user.getHitbox();
+        g.setColor(new Color(255, 0, 0, 100));
+        g.drawRect(hitbox.x, hitbox.y, hitbox.width, hitbox.height);
+    }
+
     @Override
     public void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -71,6 +80,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                 damageDealt = false;
             }
 
+            drawHitbox(g);
             if (user.getCurrentHealth() <= 0 && !dead) {
                 dead = true;
                 canMove = false;
@@ -89,11 +99,9 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             } else if (user.getCurrentAnimation().animationType().equals("attackOne")) {
                 if (user.getCurrentAnimation().getCurrentFrame() == 4 && right) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord() - 20, user.getWidth(), user.getHeight(), null);
-                    if (user.getAttackHitbox().intersects(enemy.getHitbox())) {
-                        if (!damageDealt) {
-                            enemy.takeDamage(20);
-                            damageDealt = true;
-                        }
+                    if (user.getAttackHitbox().intersects(enemy.getHitbox()) && !damageDealt) {
+                        enemy.takeDamage(userDamage);
+                        damageDealt = true;
                     }
                 } else if (user.getCurrentAnimation().getCurrentFrame() == 4 && !right) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord() - 20, user.getyCoord() - 20, user.getWidth(), user.getHeight(), null);
@@ -101,16 +109,16 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                         enemy.takeDamage(20);
                         damageDealt = true;
                     }
-                }
-                else {
+                } else {
                     g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
                 }
             }
 
             else if (user.getCurrentAnimation().animationType().equals("attackTwo")) {
-                if (user.getCurrentAnimation().getCurrentFrame() == 0) {
+                int frame = user.getCurrentAnimation().getCurrentFrame();
+                if (frame == 0) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord() - 22, user.getWidth(), user.getHeight(), null);
-                } else if (user.getCurrentAnimation().getCurrentFrame() == 1) {
+                } else if (frame == 1) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord() - 14, user.getWidth(), user.getHeight(), null);
                 } else {
                     g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
@@ -122,74 +130,53 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
             }
 
             else if (user.getCurrentAnimation().animationType().equals("attackThree")) {
-                if (user.getCurrentAnimation().getCurrentFrame() == 2 && right) {
+                int frame = user.getCurrentAnimation().getCurrentFrame();
+                if (frame == 2 && right) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord() + 100, user.getyCoord() + 4, user.getWidth(), user.getHeight(), null);
                     if (!damageDealt) {
                         enemy.takeDamage(20);
                         damageDealt = true;
                     }
-                } else if (user.getCurrentAnimation().getCurrentFrame() == 2 && !right) {
+                } else if (frame == 2 && !right) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord() - 65, user.getyCoord() + 4, user.getWidth(), user.getHeight(), null);
                     if (!damageDealt) {
                         enemy.takeDamage(20);
                         damageDealt = true;
                     }
-                } else if (user.getCurrentAnimation().getCurrentFrame() == 3 && right) {
+                } else if (frame == 3 && right) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord() + 54, user.getyCoord() + 10, user.getWidth(), user.getHeight(), null);
-                } else if ((user.getCurrentAnimation().getCurrentFrame() == 3) && !right) {
+                } else if (frame == 3 && !right) {
                     g.drawImage(user.getPlayerImage(), user.getxCoord() - 54, user.getyCoord() + 10, user.getWidth(), user.getHeight(), null);
                 } else {
                     g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
                 }
             }
+
             else if (user.getCurrentAnimation().animationType().equals("runAttack")) {
                 int currentFrame = user.getCurrentAnimation().getCurrentFrame();
                 if (!damageDealt) {
                     enemy.takeDamage(20);
                     damageDealt = true;
                 }
-                if (currentFrame == 0 && right) {
-                    g.drawImage(user.getPlayerImage(), user.getxCoord() + 30, user.getyCoord() - 30, user.getWidth(), user.getHeight(), null);
-                } else if (currentFrame == 0) {
-                    g.drawImage(user.getPlayerImage(), user.getxCoord() - 30, user.getyCoord() - 30, user.getWidth(), user.getHeight(), null);
-                } else if (currentFrame == 1 && right) {
-                    g.drawImage(user.getPlayerImage(), user.getxCoord() + 30, user.getyCoord() - 15, user.getWidth(), user.getHeight(), null);
-                } else if (currentFrame == 1) {
-                    g.drawImage(user.getPlayerImage(), user.getxCoord() - 30, user.getyCoord() - 15, user.getWidth(), user.getHeight(), null);
-                }
-                else if (currentFrame == 2 && right) {
-                    g.drawImage(user.getPlayerImage(), user.getxCoord() + 30, user.getyCoord() - 10, user.getWidth(), user.getHeight(), null);
-                } else if (currentFrame == 2) {
-                    g.drawImage(user.getPlayerImage(), user.getxCoord() - 30, user.getyCoord() - 10, user.getWidth(), user.getHeight(), null);
-                } else if (currentFrame == 3 && right) {
-                    g.drawImage(user.getPlayerImage(), user.getxCoord() + 20, user.getyCoord() - 5, user.getWidth(), user.getHeight(), null);
-                } else if (currentFrame == 3) {
-                    g.drawImage(user.getPlayerImage(), user.getxCoord() - 20, user.getyCoord() - 5, user.getWidth(), user.getHeight(), null);
-                } else {
-                    g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
-
-                }
+                // got help with Chatgpt
+                int dx = right ? 30 : -30;
+                int dy = (currentFrame == 0) ? -30 : (currentFrame == 1) ? -15 : (currentFrame == 2) ? -10 : (currentFrame == 3) ? -5 : 0;
+                g.drawImage(user.getPlayerImage(), user.getxCoord() + dx, user.getyCoord() + dy, user.getWidth(), user.getHeight(), null);
             }
 
             else if (user.getCurrentAnimation().animationType().equals("jump")) {
+                int offsetX = 0;
                 if (!right) {
-                    if (user.getCurrentAnimation().getCurrentFrame() == 3) {
-                        g.drawImage(user.getPlayerImage(), user.getxCoord() - 57, user.getyCoord(), user.getWidth(), user.getHeight(), null);
-                    } else if (user.getCurrentAnimation().getCurrentFrame() == 4) {
-                        g.drawImage(user.getPlayerImage(), user.getxCoord() - 48, user.getyCoord(), user.getWidth(), user.getHeight(), null);
-                    } else if (user.getCurrentAnimation().getCurrentFrame() == 5) {
-                        g.drawImage(user.getPlayerImage(), user.getxCoord() - 42, user.getyCoord(), user.getWidth(), user.getHeight(), null);
-                    } else {
-                        g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
-                    }
-                } else {
-                    g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
+                    int frame = user.getCurrentAnimation().getCurrentFrame();
+                    if (frame == 3) offsetX = -57;
+                    else if (frame == 4) offsetX = -48;
+                    else if (frame == 5) offsetX = -42;
                 }
+                g.drawImage(user.getPlayerImage(), user.getxCoord() + offsetX, user.getyCoord(), user.getWidth(), user.getHeight(), null);
             }
 
             else {
                 g.drawImage(user.getPlayerImage(), user.getxCoord(), user.getyCoord(), user.getWidth(), user.getHeight(), null);
-
             }
 
             if (!dead && canMove) {
@@ -199,61 +186,62 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                     user.updateCurrentAnimation("idle");
                 }
 
-                // player jump (space)
-                if (pressedKeys[32] && !jump) {
-                    if (!AD) {
+                if (pressedKeys[32] && !jump && canMove && !dead) {
+                    if (!user.getCurrentAnimation().animationType().startsWith("attack")) {
                         if (pressedKeys[65]) {
                             user.faceLeft();
                             user.updateCurrentAnimation("jump", "left", pressedKeys[16]);
-                            jump = true;
-                        } else if (pressedKeys[68]) {
+                        } else if (pressedKeys[68] && !isCollidingWithEnemy()) {
                             user.faceRight();
                             user.updateCurrentAnimation("jump", "right", pressedKeys[16]);
-                            jump = true;
                         } else {
                             user.updateCurrentAnimation("jump", "still", true);
-                            jump = true;
                         }
                     }
-
+                    jump = true;
                 }
 
-                // player moves left (A)
                 if (pressedKeys[65] && !attacking && !AD && !jump) {
                     right = false;
                     if (pressedKeys[16]) {
-                        if (user.getCurrentAnimation().animationType() != null && !user.getCurrentAnimation().animationType().equals("run")) {
+                        if (!"run".equals(user.getCurrentAnimation().animationType())) {
                             user.updateCurrentAnimation("run");
                             walking = false;
                             running = true;
                         }
                     } else {
-                        if (user.getCurrentAnimation().animationType() != null && !user.getCurrentAnimation().animationType().equals("walk")) {
+                        if (!"walk".equals(user.getCurrentAnimation().animationType())) {
                             user.updateCurrentAnimation("walk");
                             walking = true;
                         }
                     }
                     user.faceLeft();
-                    user.moveLeft();
+                    Rectangle userNext = new Rectangle(user.getxCoord() - user.getSpeed(), user.getyCoord(), user.getWidth(), user.getHeight());
+                    if (!userNext.intersects(enemy.getHitbox())) {
+                        user.moveLeft();
+                    }
                 }
-                // player moves right (D)
-                if (pressedKeys[68] && !attacking && !AD && !jump) {
+
+                if (pressedKeys[68] && !attacking && !AD && !jump && !isCollidingWithEnemy()) {
                     right = true;
                     if (pressedKeys[16]) {
-                        if (user.getCurrentAnimation().animationType() != null && !user.getCurrentAnimation().animationType().equals("run")) {
+                        if (!"run".equals(user.getCurrentAnimation().animationType())) {
                             user.updateCurrentAnimation("run");
                             walking = false;
                             running = true;
                         }
                     } else {
-                        if (user.getCurrentAnimation().animationType() != null && !user.getCurrentAnimation().animationType().equals("walk")) {
+                        if (!"walk".equals(user.getCurrentAnimation().animationType())) {
                             user.updateCurrentAnimation("walk");
                             walking = true;
                         }
                     }
                     user.faceRight();
-                    user.moveRight();
-                }
+                    Rectangle userNext = new Rectangle(user.getxCoord() + user.getSpeed(), user.getyCoord(), user.getWidth(), user.getHeight());
+                    if (!userNext.intersects(enemy.getHitbox())) {
+                        user.moveRight();
+                    }
+                } else if (pressedKeys[68] && !attacking && !AD && !jump) {user.faceRight();}
 
                 if (AD && !jump && !attacking && !attackRun) {
                     walking = false;
@@ -261,6 +249,7 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
                     user.updateCurrentAnimation("idle");
                 }
             }
+
             if (dead) {
                 loadEndMenu();
             }
@@ -414,6 +403,15 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
         canMove = a;
     }
 
+    private boolean isCollidingWithEnemy() {
+        if (enemy == null || user == null) return false;
+
+        Rectangle userBox = user.getHitbox();
+        Rectangle enemyBox = new Rectangle(enemy.getHitbox().x + enemy.getHitbox().width, enemy.getHitbox().y, enemy.getHitbox().width * -1, enemy.getHitbox().height);
+
+        return userBox.intersects(enemyBox);
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
@@ -552,9 +550,18 @@ public class GraphicsPanel extends JPanel implements ActionListener, KeyListener
         }
     }
 
+    public static int getEnemiesDefeated() {
+        return enemiesDefeated;
+    }
+
     @Override
     public void spawnNewEnemy() {
         enemy = new Enemy(user, this);
         enemiesDefeated++;
+        user.heal(healAmount);
+        if (enemiesDefeated % 5 == 0) {
+            healAmount += .05;
+            userDamage += 5;
+        }
     }
 }
